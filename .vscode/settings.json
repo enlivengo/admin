@@ -1,0 +1,64 @@
+{
+    "emeraldwalk.runonsave": {
+        "commands": [
+            {
+                "match": ".go",
+                "isAsync": false,
+                "cmd": "killall debug"
+            },
+            {
+                "match": ".go",
+                "isAsync": false,
+                "cmd": "cd ${workspaceRoot} && go get"
+            },
+            
+            {
+                "match": ".html",
+                "isAsync": false,
+                "cmd": "killall debug"
+            },
+            {
+                "match": ".html",
+                "isAsync": false,
+                "cmd": "cd ${workspaceRoot} && rm -f ./views.go"
+            },
+            {
+                "match": ".html",
+                "isAsync": false,
+                "cmd": "cd ${workspaceRoot} && go generate ./..."
+            },
+            
+            {
+                "match": ".tmpl",
+                "isAsync": false,
+                "cmd": "killall debug"
+            },
+            {
+                "match": ".tmpl",
+                "isAsync": false,
+                "cmd": "cd ${workspaceRoot} && rm -f ./views.go"
+            },
+            {
+                "match": ".tmpl",
+                "isAsync": false,
+                "cmd": "cd ${workspaceRoot} && go generate ./..."
+            },
+            
+            {
+                "match": ".css",
+                "isAsync": false,
+                "cmd": "killall debug"
+            },
+            {
+                "match": ".css",
+                "isAsync": false,
+                "cmd": "cd ${workspaceRoot} && rm -f ./views.go"
+            },
+            {
+                "match": ".css",
+                "isAsync": false,
+                "cmd": "cd ${workspaceRoot} && go generate ./..."
+            }
+        ]
+    }
+}
