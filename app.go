@@ -3,8 +3,8 @@ package admin
 //go:generate go-bindata -o views.go -pkg admin views/...
 
 import (
+	"github.com/enlivengo/database"
 	"github.com/enlivengo/enliven"
-	"github.com/enlivengo/enliven/apps/database"
 	"github.com/qor/qor"
 )
 
