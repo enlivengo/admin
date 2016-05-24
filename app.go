@@ -40,7 +40,7 @@ func (aa *App) Initialize(ev *enliven.Enliven) {
 		panic("The Admin app requires that the Database app is initialized with a default connection.")
 	}
 
-	db := database.GetDatabase(ev, "default")
+	db := database.GetDatabase()
 
 	admin := New(&qor.Config{DB: db})
 
