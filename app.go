@@ -1,6 +1,6 @@
 package admin
 
-//go:generate go-bindata -o views.go -pkg admin views/...
+//go:generate go-bindata -ignore \.go -o views.go -pkg admin views/...
 
 import (
 	"github.com/enlivengo/database"
