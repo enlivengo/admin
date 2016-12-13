@@ -39,8 +39,8 @@
       var options = this.options;
       var $this = this.$element;
 
-      // disable fixer if have multiple tables or in search page
-      if ($('.qor-page__body .qor-js-table').size() > 1 || $('.qor-global-search--container').size() > 0) {
+      // disable fixer if have multiple tables or in search page or in media library list page
+      if ($('.qor-page__body .qor-js-table').size() > 1 || $('.qor-global-search--container').size() > 0 || $this.hasClass('qor-table--medialibrary')) {
         return;
       }
 
@@ -78,6 +78,10 @@
     },
 
     build: function () {
+      if (!this.$content.length) {
+        return;
+      }
+
       var $this = this.$element;
       var $thead = this.$thead;
       var $clone = this.$clone;
@@ -119,6 +123,9 @@
     },
 
     toggle: function () {
+      if (!this.$content.length) {
+        return;
+      }
       var self = this;
       var $clone = this.$clone;
       var $thead = this.$thead;

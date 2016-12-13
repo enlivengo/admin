@@ -12,7 +12,7 @@ import (
 // RouteConfig config for admin routes
 type RouteConfig struct {
 	Resource       *Resource
-	Permission     *roles.Permission
+	Permissioner   HasPermissioner
 	PermissionMode roles.PermissionMode
 	Values         map[interface{}]interface{}
 }
@@ -27,7 +27,7 @@ type routeHandler struct {
 
 func newRouteHandler(path string, handle requestHandler, configs ...RouteConfig) routeHandler {
 	handler := routeHandler{
-		Path:   "/" + strings.Trim(path, "/"),
+		Path:   "/" + strings.TrimPrefix(path, "/"),
 		Handle: handle,
 	}
 
@@ -35,8 +35,8 @@ func newRouteHandler(path string, handle requestHandler, configs ...RouteConfig)
 		handler.Config = config
 	}
 
-	if handler.Config.Permission == nil && handler.Config.Resource != nil {
-		handler.Config.Permission = handler.Config.Resource.Permission
+	if handler.Config.Permissioner == nil && handler.Config.Resource != nil {
+		handler.Config.Permissioner = handler.Config.Resource
 	}
 	return handler
 }
@@ -44,10 +44,10 @@ func newRouteHandler(path string, handle requestHandler, configs ...RouteConfig)
 var emptyPermissionMode roles.PermissionMode
 
 func (handler routeHandler) HasPermission(context *qor.Context) bool {
-	if handler.Config.Permission == nil || handler.Config.PermissionMode == emptyPermissionMode {
+	if handler.Config.Permissioner == nil || handler.Config.PermissionMode == emptyPermissionMode {
 		return true
 	}
-	return handler.Config.Permission.HasPermission(handler.Config.PermissionMode, context.Roles...)
+	return handler.Config.Permissioner.HasPermission(handler.Config.PermissionMode, context)
 }
 
 func isAlpha(ch byte) bool {
@@ -99,8 +99,8 @@ func (handler routeHandler) try(path string) (url.Values, bool) {
 
 			if (j < len(handler.Path)) && handler.Path[j] == '[' {
 				var index int
-				if i := strings.Index(handler.Path[j:], "]/"); i > 0 {
-					index = i
+				if idx := strings.Index(handler.Path[j:], "]/"); idx > 0 {
+					index = idx
 				} else if handler.Path[len(handler.Path)-1] == ']' {
 					index = len(handler.Path) - j - 1
 				}

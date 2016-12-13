@@ -24,7 +24,7 @@ type Admin struct {
 	menus            []*Menu
 	resources        []*Resource
 	searchResources  []*Resource
-	auth             Auth
+	Auth             Auth
 	router           *Router
 	funcMaps         template.FuncMap
 	metaConfigorMaps map[string]func(*Meta)
@@ -46,6 +46,7 @@ func New(config *qor.Config) *Admin {
 	}
 
 	admin.SetAssetFS(&AssetFileSystem{})
+	admin.registerCompositePrimaryKeyCallback()
 	return &admin
 }
 
@@ -57,7 +58,7 @@ func (admin *Admin) SetSiteName(siteName string) {
 
 // SetAuth set admin's authorization gateway
 func (admin *Admin) SetAuth(auth Auth) {
-	admin.auth = auth
+	admin.Auth = auth
 }
 
 // SetAssetFS set AssetFS for admin
@@ -99,8 +100,7 @@ func (admin *Admin) GetRouter() *Router {
 	return admin.router
 }
 
-// NewResource initialize a new qor resource, won't add it to admin, just initialize it
-func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource {
+func (admin *Admin) newResource(value interface{}, config ...*Config) *Resource {
 	var configuration *Config
 	if len(config) > 0 {
 		configuration = config[0]
@@ -114,7 +114,6 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 		Resource:    *resource.New(value),
 		Config:      configuration,
 		cachedMetas: &map[string][]*Meta{},
-		filters:     map[string]*Filter{},
 		admin:       admin,
 	}
 
@@ -131,7 +130,7 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 	}
 
 	// Configure resource when initializing
-	modelType := admin.Config.DB.NewScope(res.Value).GetModelStruct().ModelType
+	modelType := utils.ModelType(res.Value)
 	for i := 0; i < modelType.NumField(); i++ {
 		if fieldStruct := modelType.Field(i); fieldStruct.Anonymous {
 			if injector, ok := reflect.New(fieldStruct.Type).Interface().(resource.ConfigureResourceBeforeInitializeInterface); ok {
@@ -152,12 +151,20 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 		return findOneHandler(result, metaValues, context)
 	}
 
+	res.UseTheme("slideout")
+	return res
+}
+
+// NewResource initialize a new qor resource, won't add it to admin, just initialize it
+func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource {
+	res := admin.newResource(value, config...)
+	res.configure()
 	return res
 }
 
 // AddResource make a model manageable from admin interface
 func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource {
-	res := admin.NewResource(value, config...)
+	res := admin.newResource(value, config...)
 
 	if !res.Config.Invisible {
 		var menuName string
@@ -167,7 +174,7 @@ func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource 
 			menuName = inflection.Plural(res.Name)
 		}
 
-		menu := &Menu{rawPath: res.ToParam(), Name: menuName, Permission: res.Config.Permission}
+		menu := &Menu{rawPath: res.ToParam(), Name: menuName, Permission: res.Config.Permission, Priority: res.Config.Priority}
 		admin.menus = appendMenu(admin.menus, res.Config.Menu, menu)
 
 		res.Action(&Action{
@@ -182,6 +189,14 @@ func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource 
 	}
 
 	admin.resources = append(admin.resources, res)
+
+	if admin.router.Mounted() {
+		admin.generateMenuLinks()
+		res.configure()
+		if !res.Config.Invisible {
+			admin.RegisterResourceRouters(res, "create", "update", "read", "delete")
+		}
+	}
 	return res
 }
 

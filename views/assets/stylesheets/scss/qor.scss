@@ -1,6 +1,7 @@
 @import "variables";
 @import "mixins";
 
+@import "qor/datepicker";
 @import "qor/qor-chooser";
 @import "qor/qor-cropper";
 @import "qor/qor-datepicker";
@@ -8,5 +9,7 @@
 @import "qor/qor-modal";
 @import "qor/qor-redactor";
 @import "qor/qor-selector";
+@import "qor/qor-filter";
 @import "qor/qor-slideout";
+@import "qor/qor-bottomsheets";
 @import "qor/qor-search";
