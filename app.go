@@ -1,8 +1,7 @@
 package admin
 
-//go:generate go-bindata -ignore \.go -o views.go -pkg admin views/...
-
 import (
+	"github.com/enlivengo/admincore"
 	"github.com/enlivengo/database"
 	"github.com/enlivengo/enliven"
 	"github.com/qor/qor"
@@ -18,8 +17,8 @@ func AddResources(resources ...interface{}) {
 }
 
 // GetAdmin returns our instance of qor/admin
-func GetAdmin(ev *enliven.Enliven) *Admin {
-	if a, ok := ev.GetService("admin").(*Admin); ok {
+func GetAdmin(ev *enliven.Enliven) *admincore.Admin {
+	if a, ok := ev.GetService("admin").(*admincore.Admin); ok {
 		return a
 	}
 	return nil
@@ -42,14 +41,14 @@ func (aa *App) Initialize(ev *enliven.Enliven) {
 
 	db := database.GetDatabase()
 
-	admin := New(&qor.Config{DB: db})
+	admin := admincore.New(&qor.Config{DB: db})
 
 	for _, resource := range adminResources {
 		admin.AddResource(resource)
 	}
 
-	admin.enliven = ev
-	admin.MountTo("/admin", ev.Router)
+	admin.Enliven = ev
+	admin.MountTo("/admin")
 	admin.SetSiteName("Enliven")
 	ev.Auth.AddPermission("admin-app", ev, "Administrator")
 	ev.AddService("admin", admin)
